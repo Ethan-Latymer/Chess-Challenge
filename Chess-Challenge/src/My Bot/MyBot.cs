@@ -13,17 +13,17 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         int i = 1;
+        Console.WriteLine(Transposition.Count);
         if (Transposition.Count > 100000)
         {
             Transposition.Clear();
         }
 
         (List<Move> move, _) = Evaluation(board, 0, -50000, false, new());
-        while (timer.MillisecondsElapsedThisTurn < (Math.Min(board.PlyCount + 5, 40) * timer.MillisecondsRemaining) / 4500)
+        while (timer.MillisecondsElapsedThisTurn < (Math.Min(board.PlyCount, 40) * timer.MillisecondsRemaining) / 4000)
         {
             (move, _) = Evaluation(board, i++, -50000, false, move);
         }
-        Console.WriteLine(i);
         return move[0];
     }
 
@@ -68,7 +68,7 @@ public class MyBot : IChessBot
                 }
             }
             //One million should be safe to get under the limit.
-            else 
+            else
             {
                 Transposition.Add(zobristKey, new());
                 Transposition[zobristKey].Add(Depth, 0);
@@ -171,13 +171,13 @@ public class MyBot : IChessBot
                         {
                             if (OppCount <= i && AICount > i)
                             {
-                                    AIValue += ControlValuation(0, OpponentInvestment, AIAttackingPieces, ref AIThreats, squareOpp);
+                                AIValue += ControlValuation(0, OpponentInvestment, AIAttackingPieces, ref AIThreats, squareOpp);
 
                                 break;
                             }
                             else if (OppCount > i && AICount <= i)
                             {
-                                    OpponentValue += ControlValuation(0, AIInvestment, OpponentAttackingPieces, ref OpponentThreats, squareAI);
+                                OpponentValue += ControlValuation(0, AIInvestment, OpponentAttackingPieces, ref OpponentThreats, squareAI);
 
                                 break;
                             }
@@ -221,10 +221,6 @@ public class MyBot : IChessBot
                             }
                         }
                     }
-                    if (AIThreats.Count > 1)
-                    {
-                        AIValue += AIThreats.Min();
-                    }
                     if (OpponentThreats.Any())
                     {
                         OpponentValue += OpponentThreats.Max();
@@ -233,16 +229,6 @@ public class MyBot : IChessBot
                 }
 
                 board.UndoMove(move);
-
-                if (move.IsCastles)
-                {
-                    moveValue += 100;
-                }
-
-                if ((board.HasKingsideCastleRight(board.IsWhiteToMove) || board.HasQueensideCastleRight(board.IsWhiteToMove)) && (int)move.MovePieceType == 6)
-                {
-                    moveValue -= 50;
-                }
 
                 try
                 {
